@@ -5,13 +5,13 @@ Reactの勉強のためのページです。
 
 # 環境構築手順
 最初に1度だけ実行する. 2回目以降は必要ない.
-1. 番号のフォルダを作る
+1. 番号のフォルダを作る  
 `mkdir t122xxx`
-2. コンテナをビルドする
+2. コンテナをビルドする  
 `docker compose build`
-3. アプリケーションを作成
+3. アプリケーションを作成  
 `docker compose run --rm t122xxx sh -c 'npx -y create-react-app react-app'`
-4. コンテナを立ち上げる
+4. コンテナを立ち上げる  
 `docker compose up -d`
 
 # 使用方法
