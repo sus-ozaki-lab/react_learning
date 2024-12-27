@@ -7,6 +7,27 @@ Reactの勉強のためのページです。
 最初に1度だけ実行する. 2回目以降は必要ない.
 1. 番号のフォルダを作る  
 `mkdir t122xxx`
+
+2. 番号のbackフォルダを作る  
+`mkdir t122xxx_back`
+
+3. docker-compose.ymlの内容を変更する  
+```
+#バックエンド
+  t122104_back:
+    build: 
+      context: ./t122104_back
+      dockerfile: Dockerfile
+    containername: t122104_back
+    volumes:
+      - ./t122104_back:/app
+```
+これをそれぞれの学籍番号に変更する
+
+4. t122xxx_backフォルダにいかのファイルを作成する(内容はgitのt122104_backと同様にしてください)  
+app.py  
+Dockerfile  
+requirements.txt  
 2. コンテナをビルドする  
 `docker compose build`
 3. アプリケーションを作成  
