@@ -37,6 +37,19 @@ services:
     command: sh -c 'cd react-app && yarn start'
     tty: true
     stdin_open: true
+#バックエンド
+  t122104_back:
+    build: 
+      context: ./t122104_back
+      dockerfile: Dockerfile
+    container_name: t122104_back
+    volumes:
+      - ./t122104_back:/app
+    
+    ports:
+      - "5005:5000"
+    environment:
+      - FLASK_ENV=development
   
   t122152:
     build: 
