@@ -5,6 +5,7 @@ import SelectPlace from "./components/page/kyePlace/selectPlace";
 import SelectType from './components/page/kyePlace/SeleceType';
 import SubmitButton from "./components/page/kyePlace/submit";
 
+
 const App = () => {
   const [selectedPlace, setSelectedPlace] = useState('');
   const [selectedType, setSelectedType] = useState('');
