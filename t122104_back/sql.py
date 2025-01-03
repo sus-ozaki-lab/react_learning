@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS keyType (
 )
 """)
 
+
 # 鍵の場所テーブル
 
 cursor.execute("""
