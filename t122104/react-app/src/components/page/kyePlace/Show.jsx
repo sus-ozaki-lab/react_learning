@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+
 const Show = () => {
   const [places, setPlaces] = useState([]);  // 状態を配列で初期化
 
