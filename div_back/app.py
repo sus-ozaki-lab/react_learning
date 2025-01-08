@@ -15,25 +15,23 @@ def get_db_connection():
 
 lab = "尾崎研究室"
 member = 1
-# 現在の鍵の場所の表示
+# 
 
-
-# 鍵の場所の選択
-@app.route('/keyPlace/lab/selectPlace', methods=['GET'])
-def selectPlace():
+@app.route('/keyPlace/lab/selectType', methods=['GET'])
+def selectType():
     connection = get_db_connection()  # 接続を開く
     cursor = connection.cursor()
 
     # クエリ実行
-    cursor.execute("""SELECT DISTINCT place FROM keyPlace""")
+    cursor.execute("""SELECT type FROM keyType""")
     rows = cursor.fetchall()  # すべてのデータを取得
 
     # rowsから場所のリストを作成
-    places = [row['place'] for row in rows]  # SQLiteの行を辞書形式で取得するためには row_factory を設定しておく必要がある
+    types = [row['type'] for row in rows]  
 
     # データを返す
     data = {
-        "places": places  # placesリストを返す
+        "types": types  # placesリストを返す
     }
 
     connection.close()  # 接続を閉じる
