@@ -15,28 +15,33 @@ def get_db_connection():
 
 lab = "尾崎研究室"
 member = 1
-# 
 
-@app.route('/keyPlace/lab/selectType', methods=['GET'])
-def selectType():
+# 決定ボタン
+@app.route('/keyPlace/lab/submit', methods=['POST'])
+def submit():
+    data = request.get_json()
+
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 現在の時刻をフォーマット
+    place = data.get("place")
+    selected_type = data.get("type")
+
     connection = get_db_connection()  # 接続を開く
     cursor = connection.cursor()
 
-    # クエリ実行
-    cursor.execute("""SELECT type FROM keyType""")
-    rows = cursor.fetchall()  # すべてのデータを取得
+    #鍵の種類からkeyIDを取得
+    cursor.execute("SELECT keyID FROM keyType WHERE type = ?", (selected_type,))
+    key_type_row = cursor.fetchone()
 
-    # rowsから場所のリストを作成
-    types = [row['type'] for row in rows]  
+    key_id = key_type_row['keyID']
 
-    # データを返す
-    data = {
-        "types": types  # placesリストを返す
-    }
+    cursor.execute(""" 
+            INSERT INTO keyPlace (time, place, keyID, memberID) 
+            VALUES (?, ?, ?, ?)
+        """, (current_time, place, key_id, 1))  # memberID は仮の値 1 にしています
+    connection.commit()  # 変更をコミット
+    connection.close()
 
-    connection.close()  # 接続を閉じる
-    return jsonify(data)  # JSONで返す
-
+    return jsonify({"message": "データが正常に送信されました"}), 200
 
 if __name__ == '__main__':
     # サーバーを起動
