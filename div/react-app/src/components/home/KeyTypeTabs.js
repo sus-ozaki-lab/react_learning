@@ -70,6 +70,8 @@ function KeyTypeTabs({ lab }) {
             <p>現在の場所: {keyDetails.place}</p>
             <p>最終更新者: {keyDetails.memberName}</p>
             <p>最終更新時間: {keyDetails.time}</p>
+            {/* WantKeyButton コンポーネントを使用 */}
+            <WantKeyButton lab={lab} selectedKey={selectedKey} />
           </div>
         ) : (
           <p>鍵の詳細を取得できません。</p>
