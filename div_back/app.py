@@ -1,48 +1,44 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
-from datetime import datetime
 
 app = Flask(__name__)
-# React からのリクエストを許可
 CORS(app)
 
-# データベース接続関数
+# データベース接続
 def get_db_connection():
-    connection = sqlite3.connect("react_leaning.db")
-    connection.row_factory = sqlite3.Row  # row_factoryを設定して、結果を辞書形式で取得
-    return connection
+    conn = sqlite3.connect('database.db')  # DBファイルを指定
+    conn.row_factory = sqlite3.Row
+    return conn
 
-lab = "尾崎研究室"
-member = 1
-
-# 決定ボタン
-@app.route('/keyPlace/lab/submit', methods=['POST'])
-def submit():
+# ログイン
+@app.route('/login', methods=['POST'])
+def login():
+    # 情報を取得
     data = request.get_json()
+    member_name = data['memberName']
+    password = data['password']
+    
+    # データベース接続
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # memberNameとパスワードを検証
+    cursor.execute("SELECT * FROM member WHERE memberName = ?", (member_name,))
+    user = cursor.fetchone()
 
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 現在の時刻をフォーマット
-    place = data.get("place")
-    selected_type = data.get("type")
 
-    connection = get_db_connection()  # 接続を開く
-    cursor = connection.cursor()
+    if user and user['password'] == password:  
+        return jsonify({"message": "Login successful", "memberID": user['memberID']}), 200
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
 
-    #鍵の種類からkeyIDを取得
-    cursor.execute("SELECT keyID FROM keyType WHERE type = ?", (selected_type,))
-    key_type_row = cursor.fetchone()
+# ログアウトエンドポイント
+@app.route('/logout', methods=['POST'])
+def logout():
+    # ログアウト処理
+    return jsonify({"message": "ログアウト成功"}), 200
 
-    key_id = key_type_row['keyID']
-
-    cursor.execute(""" 
-            INSERT INTO keyPlace (time, place, keyID, memberID) 
-            VALUES (?, ?, ?, ?)
-        """, (current_time, place, key_id, 1))  # memberID は仮の値 1 にしています
-    connection.commit()  # 変更をコミット
-    connection.close()
-
-    return jsonify({"message": "データが正常に送信されました"}), 200
-
+# アプリケーション起動
 if __name__ == '__main__':
-    # サーバーを起動
     app.run(host='0.0.0.0', port=5000)
