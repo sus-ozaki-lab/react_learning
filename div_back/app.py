@@ -2,6 +2,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 # React からのリクエストを許可
@@ -197,6 +200,67 @@ def get_key_details(lab):
         })
     else:
         return jsonify({"message": "鍵の詳細が見つかりませんでした", "lab": lab, "keyID": key_id}), 404
+
+# 鍵ほしいメールを送信するエンドポイント
+@app.route('/home/<lab>/wantKey/<keyID>', methods=['GET'])
+def want_key(lab, keyID):
+    try:
+        # データベース接続
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 鍵を持っている人の studentID を取得
+        cursor.execute("""
+            SELECT m.studentID, m.memberName 
+            FROM keyPlace kp 
+            JOIN member m ON kp.memberID = m.memberID 
+            WHERE kp.keyID = ? 
+            ORDER BY kp.time DESC LIMIT 1
+        """, (keyID,))
+        holder_data = cursor.fetchone()
+
+        if not holder_data:
+            return jsonify({"error": "鍵の所持者が見つかりませんでした"}), 404
+
+        student_id = holder_data["studentID"]
+        member_name = holder_data["memberName"]
+        email = f"{student_id}@ed.sus.ac.jp"
+
+        # メール送信
+        from_email = 'ozaki_zemi@gmail.com'
+        smtp_host = 'smtp.gmail.com'
+        smtp_port = 587
+        smtp_password = 'mtgw mrdh hnvv xdpq'
+
+        # メールの内容
+        subject = "鍵を貸していただけますか？"
+        body = f"""
+        {member_name}さん、
+        
+        {lab}の鍵を貸していただきたいです。
+        必要に応じて連絡をお願いします。
+
+        鍵管理システムより
+        """
+
+        # MIME メール作成
+        msg = MIMEMultipart()
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = email
+        msg.attach(MIMEText(body, 'plain'))
+
+        # SMTP でメール送信
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(from_email, smtp_password)
+            server.send_message(msg)
+
+        return jsonify({"message": f"{email} にメールを送信しました"}), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "メール送信中にエラーが発生しました"}), 500
 
 
 # 履歴を取得するエンドポイント
