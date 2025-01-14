@@ -66,8 +66,6 @@ CREATE TABLE IF NOT EXISTS keyPlace (
 )
 """)
 
-# 履歴テーブル
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS history (
     historyID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -83,15 +81,12 @@ CREATE TABLE IF NOT EXISTS history (
 )
 """)
 
+
+
 # データの挿入
 cursor.execute("""
 INSERT INTO member (studentId, memberName, pass, labID)
     VALUES('T122104', '傳田雪華', '1234', 1)
-""")
-
-cursor.execute("""
-INSERT INTO member (studentId, memberName, pass, labID)
-    VALUES('T123456', '山田太郎', '5678', 1)
 """)
 
 cursor.execute("""
@@ -102,6 +97,11 @@ INSERT INTO keyType (type, labID)
 cursor.execute("""
 INSERT INTO keyType (type, labID)
     VALUES('404教室',1)
+""")
+
+cursor.execute("""
+INSERT INTO keyType (type, labID)
+    VALUES('405教室',2)
 """)
 
 cursor.execute("""
@@ -123,6 +123,15 @@ cursor.execute("""
 INSERT INTO keyPlace (time, place, memberID, keyID)
     VALUES('2025-01-03 15:00:00', '傳田雪華', 1, 1)
 """)
+cursor.execute("""
+INSERT INTO keyPlace (time, place, memberID, keyID)
+    VALUES('2025-01-03 15:00:00', '傳田雪華', 1, 2)
+""")
+
+cursor.execute("""
+INSERT INTO keyPlace (time, place, memberID, keyID)
+    VALUES('2025-01-03 15:00:00', '傳田雪華', 1, 3)
+""")
 
 cursor.execute("""
 INSERT INTO lab (lab)
@@ -131,19 +140,6 @@ INSERT INTO lab (lab)
 cursor.execute("""
 INSERT INTO lab (lab)
     VALUES('広瀬研究室')
-""")
-
-cursor.execute("""
-INSERT INTO history (labID, updatedBy, updateTime)
-    SELECT 1, memberID, '2025-01-10 12:00:00'
-    FROM member
-    WHERE memberName = '傳田雪華'
-""")
-cursor.execute("""
-INSERT INTO history (labID, updatedBy, updateTime)
-    SELECT 1, memberID, '2025-01-11 14:00:00'
-    FROM member
-    WHERE memberName = '山田太郎'
 """)
 
 connection.commit()
@@ -158,16 +154,14 @@ cursor.execute("SELECT * FROM keyType")
 rows = cursor.fetchall()
 for row in rows:
     print(row)
-
+print("keyPlace")
 cursor.execute("SELECT * FROM keyPlace")
 rows = cursor.fetchall()
 for row in rows:
     print(row)
 
-cursor.execute("SELECT * FROM history")
-print("\nHistory Table:")
-for row in cursor.fetchall():
-    print(row)
+
+
 
 # 接続を閉じる
 connection.close()
