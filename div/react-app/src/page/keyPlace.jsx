@@ -24,6 +24,7 @@ const KeyPlace = ({ lab }) => {
       type: selectedType,
       memberID: memberID,
     })
+    
       .then(response => {
         console.log('Response from backend:', response.data);
         alert('データが送信されました');
