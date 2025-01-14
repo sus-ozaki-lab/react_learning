@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const SelectType = ({ setSelectedType }) => {
+const SelectType = ({ setSelectedType, lab }) => {
   const [types, setTypes] = useState([]); // APIから取得する鍵の種類リスト
   const [selected, setSelected] = useState(''); // 選択された鍵の種類
 
   useEffect(() => {
     // Flask APIから鍵の種類を取得
-    axios.get('http://localhost:5000/keyPlace/lab/selectType')
+    axios.get(`http://localhost:5000/keyPlace/${lab}/selectType`) // 修正点
       .then(response => {
         if (response.data && Array.isArray(response.data.types)) {
           setTypes(response.data.types); // 鍵の種類リストを保存
@@ -18,7 +18,7 @@ const SelectType = ({ setSelectedType }) => {
       .catch(error => {
         console.error('Error fetching key types:', error); // エラー時にログを出力
       });
-  }, []);
+  }, [lab]); // labが変更されるたびに再度データを取得
 
   const handleTypeChange = (event) => {
     const selectedType = event.target.value;

@@ -18,42 +18,10 @@ def get_db_connection():
 
 lab = "尾崎研究室"
 member = 1
-# 現在の鍵の場所の表示
-
-@app.route('/keyPlace/lab/show', methods=['GET'])
-def show():
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor.execute("""
-        SELECT kp.time, kp.place, kt.type, m.memberName
-        FROM keyPlace kp
-        JOIN keyType kt ON kp.keyID = kt.keyID
-        JOIN member m ON kp.memberID = m.memberID
-        WHERE kt.labID = (SELECT labID FROM lab WHERE lab = ?)  
-        AND kp.time IN (
-            SELECT MAX(time)
-            FROM keyPlace
-            WHERE keyID IN (
-                SELECT keyID 
-                FROM keyType 
-                WHERE labID = (SELECT labID FROM lab WHERE lab = ?)
-            )
-            GROUP BY keyID
-        )
-        ORDER BY kp.time DESC
-    """, (lab, lab))  # labNameを条件に2回使用
-
-    rows = cursor.fetchall()  # クエリの結果を取得
-
-
-    data = [dict(row) for row in rows]
-
-    connection.close()  # 接続を閉じる
-    return jsonify(data)
 
 # 鍵の場所の選択
-@app.route('/keyPlace/lab/selectPlace', methods=['GET'])
-def selectPlace():
+@app.route('/keyPlace/<lab>/selectPlace', methods=['GET'])
+def selectPlace(lab):
     connection = get_db_connection()  # 接続を開く
     cursor = connection.cursor()
 
@@ -74,8 +42,8 @@ def selectPlace():
 
 
 # 鍵の種類の選択
-@app.route('/keyPlace/lab/selectType', methods=['GET'])
-def selectType():
+@app.route('/keyPlace/<lab>/selectType', methods=['GET'])
+def selectType(lab):
     connection = get_db_connection()  # 接続を開く
     cursor = connection.cursor()
 
@@ -95,8 +63,8 @@ def selectType():
     return jsonify(data)  # JSONで返す
 
 # 決定ボタン
-@app.route('/keyPlace/lab/submit', methods=['POST'])
-def submit():
+@app.route('/keyPlace/<lab>/submit', methods=['POST'])
+def submit(lab):
     data = request.get_json()
 
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 現在の時刻をフォーマット
@@ -262,8 +230,6 @@ def want_key(lab, keyID):
         print(f"Error: {e}")
         return jsonify({"error": "メール送信中にエラーが発生しました"}), 500
 
-
-# 履歴を取得するエンドポイント
 @app.route('/home/<lab>/history', methods=['GET'])
 def get_history(lab):
     try:
@@ -282,11 +248,13 @@ def get_history(lab):
 
         # 履歴を取得
         cursor.execute("""
-            SELECT h.updateTime, m.memberName
-            FROM history h
-            JOIN member m ON h.updatedBy = m.memberID
-            WHERE h.labID = ?
-            ORDER BY h.updateTime DESC
+        SELECT kp.time, kp.place, m.memberName, kt.type
+        FROM keyPlace kp
+        JOIN keyType kt ON kp.keyID = kt.keyID
+        LEFT JOIN member m ON kp.memberID = m.memberID
+        WHERE kt.labID = ?
+        ORDER BY kp.time DESC
+        LIMIT 10
         """, (lab_id,))
 
         history_data = cursor.fetchall()
@@ -295,7 +263,12 @@ def get_history(lab):
         # 履歴をJSON形式で返す
         if history_data:
             history_list = [
-                {"time": record["updateTime"], "updatedBy": record["memberName"]}
+                {
+                    "time": record["time"],  # 'time' フィールドを使用
+                    "place": record["place"],  # 'place' フィールド
+                    "updatedBy": record["memberName"],  # 'memberName' フィールド
+                    "type": record["type"]  # 'type' フィールド
+                }
                 for record in history_data
             ]
             return jsonify(history_list)
