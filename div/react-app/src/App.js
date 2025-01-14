@@ -7,6 +7,7 @@ import KeyPlace from "./page/keyPlace";
 function App() {
   const [lab, setLab] = useState(null);  // lab情報をここで管理
 
+  
   return (
     <Router>
       <Routes>
