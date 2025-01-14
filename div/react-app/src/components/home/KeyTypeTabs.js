@@ -11,7 +11,7 @@ function KeyTypeTabs({ lab }) {
   // 鍵の種類を取得
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/home/${lab}/keyType`)
+      .get(`http://localhost:5000/home/${encodeURIComponent(lab)}/keyType`)
       .then((response) => {
         setKeys(response.data);
         setError(null); // 成功時はエラーをリセット
@@ -26,7 +26,7 @@ function KeyTypeTabs({ lab }) {
   const handleKeySelect = (keyID) => {
     setSelectedKey(keyID);
     axios
-      .get(`http://localhost:5000/home/${lab}/place?keyID=${keyID}`)
+      .get(`http://localhost:5000/home/${encodeURIComponent(lab)}/place?keyID=${keyID}`)
       .then((response) => setKeyDetails(response.data))
       .catch((error) => {
         setError("鍵の詳細を取得できません: " + error.message);

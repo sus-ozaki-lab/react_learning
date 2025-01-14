@@ -90,6 +90,11 @@ INSERT INTO member (studentId, memberName, pass, labID)
 """)
 
 cursor.execute("""
+INSERT INTO member (studentId, memberName, pass, labID)
+    VALUES('T122000', '田中太郎', '1234', 2)
+""")
+
+cursor.execute("""
 INSERT INTO keyType (type, labID)
     VALUES('尾崎研究室', 1)
 """)

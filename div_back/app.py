@@ -16,12 +16,46 @@ def get_db_connection():
     connection.row_factory = sqlite3.Row  # row_factoryを設定して、結果を辞書形式で取得
     return connection
 
-lab = "尾崎研究室"
-member = 1
+
+
+# ログイン
+@app.route('/login', methods=['POST'])
+def login():
+    # 情報を取得
+    data = request.get_json()
+    member_name = data['memberName']
+    password = data['password']
+    
+    # データベース接続
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # memberNameとパスワードを検証
+    cursor.execute("""
+        SELECT m.memberID, m.pass, l.lab 
+        FROM member m 
+        JOIN lab l ON m.labID = l.labID 
+        WHERE m.memberName = ?
+    """, (member_name,))
+    user = cursor.fetchone()
+
+
+    if user and user['pass'] == password:  
+        return jsonify({"message": "Login successful","lab": user['lab'], "memberID": user['memberID']}), 200
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
+
+# ログアウトエンドポイント
+@app.route('/logout', methods=['POST'])
+def logout():
+    # ログアウト処理
+    return jsonify({"message": "ログアウト成功"}), 200
+
 
 # 鍵の場所の選択
 @app.route('/keyPlace/<lab>/selectPlace', methods=['GET'])
 def selectPlace(lab):
+
     connection = get_db_connection()  # 接続を開く
     cursor = connection.cursor()
 
@@ -46,9 +80,14 @@ def selectPlace(lab):
 def selectType(lab):
     connection = get_db_connection()  # 接続を開く
     cursor = connection.cursor()
+        # labIDを取得するためにlabsテーブルから情報を取得
+    cursor.execute("SELECT labID FROM lab WHERE lab = ?", (lab,))
+    lab_data = cursor.fetchone()
+    lab_id = lab_data["labID"]
 
     # クエリ実行
-    cursor.execute("""SELECT type FROM keyType""")
+    cursor.execute("""SELECT type FROM keyType WHERE labID = ?
+        """, (lab_id,))
     rows = cursor.fetchall()  # すべてのデータを取得
 
     # rowsから場所のリストを作成
@@ -65,7 +104,12 @@ def selectType(lab):
 # 決定ボタン
 @app.route('/keyPlace/<lab>/submit', methods=['POST'])
 def submit(lab):
+       # リクエストのデータを取得
     data = request.get_json()
+
+    # memberIDをリクエストデータから取得
+    member_id = data.get("memberID")
+ 
 
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 現在の時刻をフォーマット
     place = data.get("place")
@@ -83,12 +127,11 @@ def submit(lab):
     cursor.execute(""" 
             INSERT INTO keyPlace (time, place, keyID, memberID) 
             VALUES (?, ?, ?, ?)
-        """, (current_time, place, key_id, 1))  # memberID は仮の値 1 にしています
+        """, (current_time, place, key_id, member_id))  # memberID は仮の値 1 にしています
     connection.commit()  # 変更をコミット
     connection.close()
 
     return jsonify({"message": "データが正常に送信されました"}), 200
-
 # 鍵の種類を取得するエンドポイント
 @app.route('/home/<lab>/keyType', methods=['GET'])
 def get_key_type(lab):
@@ -96,7 +139,7 @@ def get_key_type(lab):
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # labIDを取得するためにlabsテーブルから情報を取得
+        # lab名からlabIDを取得するクエリ
         cursor.execute("SELECT labID FROM lab WHERE lab = ?", (lab,))
         lab_data = cursor.fetchone()
 
@@ -106,7 +149,7 @@ def get_key_type(lab):
         lab_id = lab_data["labID"]
 
         # 鍵の種類情報を取得するクエリ
-        cursor.execute("""
+        cursor.execute(""" 
             SELECT keyID, type FROM keyType WHERE labID = ?
         """, (lab_id,))
 
@@ -123,7 +166,7 @@ def get_key_type(lab):
             return jsonify(keys_list)
         else:
             return jsonify({"message": "鍵の種類が見つかりませんでした"}), 404
-        
+
     except Exception as e:
         print("Error:", e)  # ログにエラーを出力
         return jsonify({"error": "内部サーバーエラー"}), 500
@@ -134,16 +177,21 @@ def get_key_type(lab):
 def get_key_details(lab):
     key_id = request.args.get("keyID", type=int)
     
-    # labを数字のlabIDに変換（例えば、'尾崎研究室' -> 1）
-    lab_ids = {"尾崎研究室": 1, "広瀬研究室": 2}
-    lab_id = lab_ids.get(lab)
+    if not key_id:
+        return jsonify({"error": "keyIDが必要です"}), 400  # keyIDが必要な場合のエラーメッセージ
     
-    if not lab_id:
-        return jsonify({"message": f"Invalid lab: {lab}"}), 400  # labIDが無効な場合
-    
-    # データベース接続
+    # lab名からlabIDを取得する処理
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # lab名に基づいてlabIDを取得
+    cursor.execute("SELECT labID FROM lab WHERE lab = ?", (lab,))
+    lab_data = cursor.fetchone()
+    
+    if not lab_data:
+        return jsonify({"message": f"Invalid lab: {lab}"}), 400  # labが無効な場合
+    
+    lab_id = lab_data["labID"]
     
     # SQLクエリを実行 (最新の1件のみ取得)
     query = """

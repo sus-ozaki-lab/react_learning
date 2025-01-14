@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
+const LoginPage = ({ setLab }) => {
   const [memberName, setMemberName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);  // ログイン状態を管理
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,30 +16,17 @@ const LoginPage = () => {
         password,
       });
 
-      // ログイン成功
       if (response.status === 200) {
-        setIsLoggedIn(true); 
-        
-        navigate("/home"); 
+        const { lab, memberID } = response.data; // ログイン後に受け取るデータ
+        setLab(lab); // lab情報を親コンポーネントで管理
+        localStorage.setItem('memberID', memberID);
+
+        navigate("/"); // ログイン成功後にホームページへリダイレクト
       }
     } catch (err) {
-      setError("Invalid credentials. Please try again.");
-    }
-  };
-
-  const handleLogout = async () => {
-    const response = await fetch("http://localhost:5000/logout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      setIsLoggedIn(false); 
-      navigate("/login"); 
-    } else {
-      alert("ログアウトに失敗しました");
+      const errorMessage =
+        err.response?.data?.message || "ログインに失敗しました。再試行してください。";
+      setError(errorMessage);
     }
   };
 
@@ -69,13 +55,6 @@ const LoginPage = () => {
         {error && <p style={{ color: "red" }}>{error}</p>}
         <button type="submit">ログイン</button>
       </form>
-
-      {isLoggedIn && (
-        <div>
-          <h3>ログイン中</h3>
-          <button onClick={handleLogout}>ログアウト</button>
-        </div>
-      )}
     </div>
   );
 };
