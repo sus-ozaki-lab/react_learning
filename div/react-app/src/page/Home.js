@@ -8,6 +8,7 @@ import KeyTypeTabs from "../components/home/KeyTypeTabs"; // 鍵の種類タブ�
 const Home = ({ lab, setLab }) => {
   const navigate = useNavigate();  // navigateの使用
 
+  
   // ログアウト処理
   const handleLogout = async () => {
     try {
