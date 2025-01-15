@@ -243,10 +243,10 @@ def want_key(lab, keyID):
         email = f"{student_id}@ed.sus.ac.jp"
 
         # メール送信
-        from_email = 'ozaki_zemi@gmail.com'
+        from_email = 'ozaki.laboratory@gmail.com'
         smtp_host = 'smtp.gmail.com'
         smtp_port = 587
-        smtp_password = 'mtgw mrdh hnvv xdpq'
+        smtp_password = ''
 
         # メールの内容
         subject = "鍵を貸していただけますか？"
